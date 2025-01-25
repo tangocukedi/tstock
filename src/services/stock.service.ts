@@ -1,23 +1,28 @@
 import axios from "axios";
-import { config } from "../config/config";
-import { AlphaVantageResponse } from "../interfaces/stock-data.interface";
-import { ApiError } from "../utils/errors";
+import { config } from "../config/config.js";
+import { AlphaVantageResponse } from "../interfaces/stock-data.interface.js";
+import { ApiError } from "../utils/errors.js";
 
 export class StockService {
-  async fetchStockData(symbol: string): Promise<void> {
-    const { apiKey, baseUrl } = config;
+  private readonly apiKey: string;
+  private readonly baseUrl: string;
 
-    if (!apiKey) {
+  constructor() {
+    this.apiKey = config.apiKey;
+    this.baseUrl = config.baseUrl;
+    if (!this.apiKey) {
       throw new Error("API key is missing!");
     }
+  }
 
+  async fetchStockData(symbol: string): Promise<void> {
     try {
-      const response = await axios.get<AlphaVantageResponse>(baseUrl, {
+      const response = await axios.get<AlphaVantageResponse>(this.baseUrl, {
         params: {
           function: "TIME_SERIES_INTRADAY",
           symbol,
           interval: "5min",
-          apikey: apiKey,
+          apikey: this.apiKey,
         },
       });
 
@@ -41,7 +46,31 @@ export class StockService {
       if (axios.isAxiosError(error)) {
         throw new ApiError(`Failed to fetch stock data: ${error.message}`);
       }
-      // Rethrow unexpected errors
+      throw error;
+    }
+  }
+
+  async fetchBTCtoUSD(): Promise<void> {
+    try {
+      const response = await axios.get(`${this.baseUrl}`, {
+        params: {
+          function: "CURRENCY_EXCHANGE_RATE",
+          from_currency: "BTC",
+          to_currency: "USD",
+          apikey: this.apiKey,
+        },
+      });
+      const exchangeRateData = response.data["Realtime Currency Exchange Rate"];
+      if (!exchangeRateData) {
+        throw new ApiError("Failed to fetch Bitcoin to USD exchange rate.");
+      }
+
+      const rate = exchangeRateData["5. Exchange Rate"];
+      console.log(`Bitcoin to USD Exchange Rate: ${rate}`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new ApiError(`Failed to fetch Bitcoin price: ${error.message}`);
+      }
       throw error;
     }
   }

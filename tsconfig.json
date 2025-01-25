@@ -1,14 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ES6" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+    "target": "ES6",
     "module": "ESNext" /* Specify what module code is generated. */,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "strict": true,
     "outDir": "./dist",
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./src", // Resolve relative to src
+    "paths": {
+      "*": ["*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
