@@ -1,16 +1,31 @@
 import { StockService } from "./services/stock.service.js";
-import { logger } from "./utils/logger.js";
+import { CronJob } from "cron";
 
 const stockService = new StockService();
+const cronInterval = process.env.CRON_INTERVAL || "*/5 * * * *";
 
 async function main() {
-  try {
-    const symbol = "BTC/USD"; // hardcoded for now
-    logger.info(`Fetching stock data for ${symbol}...`);
-    await stockService.fetchBTCtoUSD();
-  } catch (error) {
-    logger.error(error instanceof Error ? error.message : "Unknown error");
-  }
+  console.log("Starting stock/currency price data");
+
+  const job = CronJob.from({
+    cronTime: cronInterval,
+    onTick: async () => {
+      try {
+        console.log(`[${new Date().toISOString()}] Fetching Bitcoin price...`);
+        await stockService.fetchBTCtoUSD();
+      } catch (error) {
+        console.error(
+          `[${new Date().toISOString()}] Error fetching Bitcoin price:`,
+          error
+        );
+      }
+    },
+    start: true,
+    timeZone: "America/New_York",
+  });
 }
 
-main();
+main().catch((error) => {
+  console.error("Error starting the app:", error);
+  process.exit(1);
+});

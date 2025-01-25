@@ -2,6 +2,7 @@ import axios from "axios";
 import { config } from "../config/config.js";
 import { AlphaVantageResponse } from "../interfaces/stock-data.interface.js";
 import { ApiError } from "../utils/errors.js";
+import fs from "fs";
 
 export class StockService {
   private readonly apiKey: string;
@@ -65,8 +66,15 @@ export class StockService {
         throw new ApiError("Failed to fetch Bitcoin to USD exchange rate.");
       }
 
-      const rate = exchangeRateData["5. Exchange Rate"];
-      console.log(`Bitcoin to USD Exchange Rate: ${rate}`);
+      const rate = parseFloat(exchangeRateData["5. Exchange Rate"]);
+      const formattedRate = Math.ceil(rate).toLocaleString("en-US");
+      const logEntry = `[${new Date().toISOString()}] BTC/USD: ${formattedRate}\n`;
+
+      // Log to console
+      console.log(logEntry);
+
+      // Append to a log file
+      fs.appendFileSync("btc-price.log", logEntry, "utf8");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new ApiError(`Failed to fetch Bitcoin price: ${error.message}`);
